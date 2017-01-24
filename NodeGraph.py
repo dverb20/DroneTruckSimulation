@@ -111,7 +111,7 @@ def makeRoute(graph,size,center):
     #Used to test various cases
     r = []
     r.append(center)
-    for n in range(size-1):
+    for n in range(size):
         j = True
         while j is True:
             ran = random.randint(0,3205)
@@ -262,24 +262,24 @@ def openFile(name, G):
             count += 1
         return G, nodes, demands, count, cost
 
-    def solverGate(G, routeSize, dist_center, vehicles, demands):
-        gate = False
-        while gate is False:
-            try:
-                trial = makeRoute(G,routeSize,dist_center)
-                #V = [3205,56,198,1007,308,245]
-                optimal = {}
-                optimal = solve(G, trial, len(trial), demands, vehicles, 100)
-            except nx.NetworkXNoPath:
-                print "no node path"
+def solverGate(G, routeSize, dist_center, vehicles, demands):
+    gate = False
+    while gate is False:
+        try:
+            trial = makeRoute(G,routeSize,dist_center)
+            #V = [3205,56,198,1007,308,245]
+            optimal = {}
+            optimal = solve(G, trial, len(trial), demands, vehicles, 100)
+        except nx.NetworkXNoPath:
+            print "no node path"
+        else:
+            if vehicles == 10:
+                gate = True
+            if optimal is None:
+                vehicles += 1
             else:
-                if vehicles == 10:
-                    gate = True
-                if optimal is None:
-                    vehicles += 1
-                else:
-                    gate = True
-        return vehicles, trial, optimal
+                gate = True
+    return vehicles, trial, optimal
 
 # workbook = xlrd.open_workbook('importNumbers.xls', on_demand = True, formatting_info=True)
 # wb = copy(workbook)
