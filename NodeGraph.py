@@ -178,6 +178,7 @@ def droneNodeEdge(oldGraph,newGraph,nodes):
     return newGraph, totalDistance
 
 def makeDroneRoute(route):
+    #Makes route drone will fly, has drone always return to center
     newRoute = []
     center = route[0]
     flip = 0
@@ -261,48 +262,24 @@ def openFile(name, G):
             count += 1
         return G, nodes, demands, count, cost
 
-#########################################
-#########################################
-
-
-start_time = time.time()
-G = nx.Graph()
-Gd = nx.Graph()
-
-dist_center = 3205 #distribution center node
-vehicles = input("Enter Number of Trucks(1-4): ")
-routeSize = input("Enter Route Size(10-30): ")
-#'testData.csv'
-G, nodes, demands, count, cost = openFile('testData.csv', G)
-
-print count
-#for loop in range(0,10):
-gate = False
-while gate is False:
-    try:
-        trial = makeRoute(G,routeSize,dist_center)
-        #V = [3205,56,198,1007,308,245]
-        optimal = {}
-        optimal = solve(G, trial, len(trial), demands, vehicles, 100)
-    except nx.NetworkXNoPath:
-        print "no node path"
-    else:
-        if vehicles == 10:
-            gate = True
-        if optimal is None:
-            vehicles += 1
-        else:
-            gate = True
-print optimal
-finalRoutes, truckDistances = combine(optimal,trial,G)
-droneRoute = makeDroneRoute(trial)
-#euclideanDistance(G,droneRoute)
-Gd, droneDistance = droneNodeEdge(G,Gd,droneRoute)
-
-print "Route Size - ", routeSize
-print "Number of Trucks - ", vehicles
-print "Truck - ", truckDistances
-print "Drone - ", droneDistance
+    def solverGate(G, routeSize, dist_center, vehicles, demands):
+        gate = False
+        while gate is False:
+            try:
+                trial = makeRoute(G,routeSize,dist_center)
+                #V = [3205,56,198,1007,308,245]
+                optimal = {}
+                optimal = solve(G, trial, len(trial), demands, vehicles, 100)
+            except nx.NetworkXNoPath:
+                print "no node path"
+            else:
+                if vehicles == 10:
+                    gate = True
+                if optimal is None:
+                    vehicles += 1
+                else:
+                    gate = True
+        return vehicles, trial, optimal
 
 # workbook = xlrd.open_workbook('importNumbers.xls', on_demand = True, formatting_info=True)
 # wb = copy(workbook)
@@ -312,6 +289,39 @@ print "Drone - ", droneDistance
 # ws.write(2, 1, 1)
 # wb.save('importNumbers.xls')
 
-#print distances
+#########################################
+#########################################
+
+#Initializing variables
+start_time = time.time()
+G = nx.Graph()
+Gd = nx.Graph()
+dist_center = 3205 #distribution center node
+vehicles = input("Enter Number of Trucks(1-4): ")
+routeSize = input("Enter Route Size(10-30): ")
+
+#Reads nodes and edges, creating the graph
+G, nodes, demands, count, cost = openFile('testData.csv', G)
+
+#Runs the google solver to create random destinations with the best route
+vehicles, trial, optimal = solverGate(G, routeSize, dist_center, vehicles, demands)
+print optimal
+
+#Makes comprehensive list of all nodes the truck will pass through
+finalRoutes, truckDistances = combine(optimal,trial,G)
+
+#creates full route list for drone
+droneRoute = makeDroneRoute(trial)
+
+#Creates graph of drone nodes for visual aids
+Gd, droneDistance = droneNodeEdge(G,Gd,droneRoute)
+
+#prints relevant data
+print "Route Size - ", routeSize
+print "Number of Trucks - ", vehicles
+print "Truck - ", truckDistances
+print "Drone - ", droneDistance
+
+#Draws routes and prints total runtime of program
 print("--- %s seconds ---" % (time.time() - start_time))
 drawRoutes(G,Gd,finalRoutes,trial,dist_center)
