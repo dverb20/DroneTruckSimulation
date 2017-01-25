@@ -269,7 +269,7 @@ def solverGate(G, routeSize, dist_center, vehicles, demands):
             trial = makeRoute(G,routeSize,dist_center)
             #V = [3205,56,198,1007,308,245]
             optimal = {}
-            optimal = solve(G, trial, len(trial), demands, vehicles, 100)
+            optimal = solve(G, trial, len(trial), demands, vehicles, 30)
         except nx.NetworkXNoPath:
             print "no node path"
         else:
@@ -319,7 +319,8 @@ Gd, droneDistance = droneNodeEdge(G,Gd,droneRoute)
 #prints relevant data
 print "Route Size - ", routeSize
 print "Number of Trucks - ", vehicles
-print "Truck - ", truckDistances
+print "Truck - ", truckDistances,
+print "Total - ", sum(truckDistances)
 print "Drone - ", droneDistance
 
 #Draws routes and prints total runtime of program
