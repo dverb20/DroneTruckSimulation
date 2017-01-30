@@ -21,6 +21,7 @@ class RouteMatrix(object): #ulimit -s 8192
       #V is a list of nodes to be visited, graph is the nx graph
     self.demands = demands
     self.matrix = {}
+    self.speed = 40
     for from_node in range(len(V)):
       self.matrix[from_node] = {}
       for to_node in range(len(V)):
@@ -36,6 +37,10 @@ class RouteMatrix(object): #ulimit -s 8192
   def Demand(self, from_node, to_node):
       return self.demands[from_node]
 
+  def Time(self, from_node, to_node):
+      time = self.matrix[from_node][to_node] / self.speed
+      return time
+
 def solve(graph, V, size, demands, num_vehicles, load_max):
     #Google TSP algorithm
     routing = pywrapcp.RoutingModel(size, num_vehicles, 0)
@@ -50,13 +55,22 @@ def solve(graph, V, size, demands, num_vehicles, load_max):
     #matrix = RandomMatrix(9,1)
     matrix_callback = matrix.Distance
     demand_callback = matrix.Demand
+    travel_time_callback = matrix.Time
     vehicle_capacity = load_max
     null_capacity_slack = 0
     fix_start_cumul_to_zero = True
     capacity = "Capacity"
+    time_per_demand_unit = 300
+    horizon = 24 * 3600
+    time = "Time"
     routing.SetArcCostEvaluatorOfAllVehicles(matrix_callback)
-    routing.AddDimension(demand_callback, null_capacity_slack, vehicle_capacity,
-                         fix_start_cumul_to_zero, capacity)
+    # routing.AddDimension(demand_callback, null_capacity_slack, vehicle_capacity,
+    #                      fix_start_cumul_to_zero, capacity)
+    # routing.AddDimension(travel_time_callback,  # total time function callback
+    #                      horizon,
+    #                      horizon,
+    #                      fix_start_cumul_to_zero,
+    #                      time)
     assignment = routing.SolveWithParameters(search_parameters)
     if assignment:
       # Solution cost.
@@ -270,10 +284,11 @@ def solverGate(G, routeSize, dist_center, vehicles, demands):
             #V = [3205,56,198,1007,308,245]
             optimal = {}
             optimal = solve(G, trial, len(trial), demands, vehicles, 30)
+            print "here"
         except nx.NetworkXNoPath:
             print "no node path"
         else:
-            if vehicles == 10:
+            if vehicles == 4:
                 gate = True
             if optimal is None:
                 vehicles += 1
