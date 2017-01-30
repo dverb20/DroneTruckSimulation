@@ -215,15 +215,16 @@ def makeDroneRoute(nodes):
     flip = 0
     newRoute.append(center)
     i = 1
-    while i < len(nodes):
+    while i < len(route):
         if flip is 0:
-            newRoute.append(nodes[i])
+            newRoute.append(route[i])
             flip = 1
         if flip is 1:
             newRoute.append(center)
             flip = 0
             i += 1
-    return newRoute
+    #odd indecies are the destinations
+    return newRoute, times
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
 
@@ -343,7 +344,7 @@ print optimal
 finalRoutes, truckDistances = combine(optimal,trial,G)
 
 #creates full route list for drone
-droneRoute = makeDroneRoute(trial)
+droneRoute, times = makeDroneRoute(trial)
 
 #Creates graph of drone nodes for visual aids
 Gd, droneDistance = droneNodeEdge(G,Gd,droneRoute)
