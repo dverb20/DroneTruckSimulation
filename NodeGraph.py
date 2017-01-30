@@ -180,6 +180,7 @@ def euclideanDistance(graph,route):
     print totalDistance
 
 def droneNodeEdge(oldGraph,newGraph,nodes):
+    #Creates graph for drones
     totalDistance = 0
     newGraph.add_node(nodes[0],pos=oldGraph.node[nodes[0]]['pos'],x=oldGraph.node[nodes[0]]['x'],y=oldGraph.node[nodes[0]]['y'])
     for n in range(1,len(nodes)-1):
@@ -191,16 +192,32 @@ def droneNodeEdge(oldGraph,newGraph,nodes):
     #print totalDistance
     return newGraph, totalDistance
 
-def makeDroneRoute(route):
+def makeDroneRoute(nodes):
     #Makes route drone will fly, has drone always return to center
+    #all times are in minutes, each day is 1440
+    #minutes given create median time, window is created by taking 15 minutes before and 15 after
     newRoute = []
-    center = route[0]
+    timeList = {}
+    center = nodes[0]
+    for x in nodes:
+        if x is not center:
+            timeList[x] = random.randint(360,1260)
+    print timeList
+    sortedList = sorted(timeList.items(), key=lambda x: x[1])
+    route = []
+    times = []
+    for x in sortedList:
+        print x
+        route.append(x[0])
+        times.append(x[1])
+    print route
+    print times
     flip = 0
     newRoute.append(center)
     i = 1
-    while i < len(route):
+    while i < len(nodes):
         if flip is 0:
-            newRoute.append(route[i])
+            newRoute.append(nodes[i])
             flip = 1
         if flip is 1:
             newRoute.append(center)
