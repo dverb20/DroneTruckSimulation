@@ -16,7 +16,7 @@ import time
 class RouteMatrix(object): #ulimit -s 8192
   """Random matrix."""
 
-  def __init__(self, V, graph, demands):
+  def __init__(self, V, graph, demands, drone=False):
       # check if demands is empty, if not demands
       #V is a list of nodes to be visited, graph is the nx graph
     self.demands = demands
@@ -28,7 +28,10 @@ class RouteMatrix(object): #ulimit -s 8192
         if from_node == to_node:
           self.matrix[from_node][to_node] = 0
         else:
-          self.matrix[from_node][to_node] = getDistance(graph,V[from_node],V[to_node])
+            if drone is True:
+                self.matrix[from_node][to_node] = euDistance(graph.node[V[from_node]],graph.node[V[to_node])
+            else:
+                self.matrix[from_node][to_node] = getDistance(graph,V[from_node],V[to_node])
           #The line above creates a dictionary entry with the total distance between from_node to to_node
 
   def Distance(self, from_node, to_node):
@@ -49,7 +52,7 @@ def solve(graph, V, size, demands, num_vehicles, load_max):
     search_parameters.first_solution_strategy = (
         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
     if load_max < 2:
-        matrix = RouteMatrix(V, graph, demands)
+        matrix = RouteMatrix(V, graph, demands, True)
     else:
         matrix = RouteMatrix(V, graph, demands)
     #matrix = RandomMatrix(9,1)
@@ -136,7 +139,7 @@ def makeRoute(graph,size,center):
     return r
 
 def getDistance(graph, from_node, to_node):
-    #In progress algorithm, incorporates edge weights into total distance between nodes
+    #incorporates edge weights into total distance between nodes
     path = nx.dijkstra_path(graph,source=from_node,target=to_node)
     distance = 0
     for i in range(len(path)-1):
@@ -225,6 +228,18 @@ def makeDroneRoute(nodes):
             i += 1
     #odd indecies are the destinations
     return newRoute, times
+
+
+def droneRouteTest(route, times):
+    speed = 40
+    index = 1
+    drones = 1
+    finalRoute = {}
+    while attempt is True:
+        for x in range(len(route)-1):
+            if x%2 is 0:
+                
+
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
 
