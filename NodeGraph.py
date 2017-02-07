@@ -8,6 +8,7 @@ import math
 import time
 import random
 import argparse
+#from math import radians, cos, sin, asin, sqrt
 from ortools.constraint_solver import pywrapcp
 from ortools.constraint_solver import routing_enums_pb2
 import csv
@@ -29,7 +30,7 @@ class RouteMatrix(object): #ulimit -s 8192
           self.matrix[from_node][to_node] = 0
         else:
             if drone is True:
-                self.matrix[from_node][to_node] = euDistance(graph.node[V[from_node]],graph.node[V[to_node])
+                self.matrix[from_node][to_node] = euDistance(graph.node[V[from_node]],graph.node[V[to_node]])
             else:
                 self.matrix[from_node][to_node] = getDistance(graph,V[from_node],V[to_node])
           #The line above creates a dictionary entry with the total distance between from_node to to_node
@@ -119,7 +120,7 @@ def solve(graph, V, size, demands, num_vehicles, load_max):
     #     node = assignment.Value(routing.NextVar(node))
     #   route += '0'
       #print(route)
-      return collective
+      return collective, matrix
     else:
       print('No solution found.')
 
@@ -169,7 +170,12 @@ def euDistance(node1,node2):
     b = [node2['x'],node2['y']]
     dist = [(m - n)**2 for m, n in zip(a, b)]
     dist = math.sqrt(sum(dist))*100
-    return dist
+    R = 6371  # radius of the earth in km
+    mile = 0.621371
+    x = (node2['x'] - node1['x']) * math.cos( 0.5*(node2['y']+node2['y']) )
+    y = node2['y'] - node1['y']
+    d = R * math.sqrt( x*x + y*y ) * mile
+    return d
 
 def euclideanDistance(graph,route):
     totalDistance = 0
@@ -227,18 +233,20 @@ def makeDroneRoute(nodes):
             flip = 0
             i += 1
     #odd indecies are the destinations
-    return newRoute, times
+    return newRoute, route, times
 
 
-def droneRouteTest(route, times):
+def droneRouteTest(route, nodes, times, center, matrix):
     speed = 40
     index = 1
-    drones = 1
+    drones = 2
     finalRoute = {}
-    while attempt is True:
-        for x in range(len(route)-1):
-            if x%2 is 0:
-                
+    callback = matrix.Distance
+    #while attempt is True:
+    for x in range(len(route)-1):
+            dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
+            time = (dist / 40) * 60
+            print "node: ", route[x], " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
 
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
@@ -316,8 +324,7 @@ def solverGate(G, routeSize, dist_center, vehicles, demands):
             trial = makeRoute(G,routeSize,dist_center)
             #V = [3205,56,198,1007,308,245]
             optimal = {}
-            optimal = solve(G, trial, len(trial), demands, vehicles, 30)
-            print "here"
+            optimal, matrix = solve(G, trial, len(trial), demands, vehicles, 30)
         except nx.NetworkXNoPath:
             print "no node path"
         else:
@@ -327,7 +334,7 @@ def solverGate(G, routeSize, dist_center, vehicles, demands):
                 vehicles += 1
             else:
                 gate = True
-    return vehicles, trial, optimal
+    return vehicles, trial, optimal, matrix
 
 # workbook = xlrd.open_workbook('importNumbers.xls', on_demand = True, formatting_info=True)
 # wb = copy(workbook)
@@ -352,15 +359,22 @@ routeSize = input("Enter Route Size(10-30): ")
 G, nodes, demands, count, cost = openFile('testData.csv', G)
 
 #Runs the google solver to create random destinations with the best route
-vehicles, trial, optimal = solverGate(G, routeSize, dist_center, vehicles, demands)
+vehicles, trial, optimal, droneMatrix = solverGate(G, routeSize, dist_center, vehicles, demands)
 print optimal
 
 #Makes comprehensive list of all nodes the truck will pass through
 finalRoutes, truckDistances = combine(optimal,trial,G)
 
 #creates full route list for drone
-droneRoute, times = makeDroneRoute(trial)
-
+droneRoute, destinations, times = makeDroneRoute(trial)
+#drone distance matrix
+print ""
+# temp = [dist_center] + destinations
+# print temp
+# droneMatrix = RouteMatrix(temp, G, demands, True)
+print trial
+print destinations
+droneRouteTest(destinations, trial, times, dist_center, droneMatrix)
 #Creates graph of drone nodes for visual aids
 Gd, droneDistance = droneNodeEdge(G,Gd,droneRoute)
 
