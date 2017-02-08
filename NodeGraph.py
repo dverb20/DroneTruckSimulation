@@ -247,7 +247,8 @@ def droneRouteTest(route, nodes, times, center, matrix):
     speed = 35
     returnTime1 = 0
     returnTime2 = 0
-    drones = 2
+    returnTime = []
+    #droneLimit = 1
     finalRoute = []
     callback = matrix.Distance
     #while attempt is True:
@@ -255,16 +256,29 @@ def droneRouteTest(route, nodes, times, center, matrix):
         dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
         time = (dist / 40) * 60
         leave = times[x] - time
-        if leave > returnTime1:
-            returnTime1 = times[x] + time
-            finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': 1, 'leave': minToHour(leave), 'return': minToHour(returnTime1)})
-            print "node: ", route[x], "drone", 1, " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
-        else:
-            returnTime2 = times[x] + time
-            finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': 2, 'leave': minToHour(leave), 'return': minToHour(returnTime2)})
-            print "node: ", route[x], "drone", 2, " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
+        # if leave > returnTime1:
+        #     returnTime1 = times[x] + time
+        #     finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': 1, 'leave': minToHour(leave), 'return': minToHour(returnTime1)})
+        #     print "node: ", route[x], "drone", 1, " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
+        # else:
+        #     returnTime2 = times[x] + time
+        #     finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': 2, 'leave': minToHour(leave), 'return': minToHour(returnTime2)})
+        #     print "node: ", route[x], "drone", 2, " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
+        j = 0
+        enter = True
+        while enter is True:
+            try:
+                returnTime[j]
+            except IndexError:
+                returnTime.append(0)
+            if leave > returnTime[j]:
+                enter = False
+                returnTime[j] = times[x] + time
+                finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': (j+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[j])})
+            j += 1
     for f in finalRoute:
         print f
+    print ""
 
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
