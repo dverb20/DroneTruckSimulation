@@ -144,7 +144,8 @@ def getDistance(graph, from_node, to_node):
     path = nx.dijkstra_path(graph,source=from_node,target=to_node)
     distance = 0
     for i in range(len(path)-1):
-        w = graph.get_edge_data(path[i],path[i+1])['weight']
+        #w = graph.get_edge_data(path[i],path[i+1])['weight']
+        w = euDistance(graph.node[path[i]], graph.node[path[i+1]])
         distance += w
     return distance
 
@@ -162,6 +163,7 @@ def combine(routes, nodes, graph):
         collective[veh] = final
         lengths.append(length)
     #print length
+    #print collective
     return collective, lengths
 
 def euDistance(node1,node2):
@@ -174,7 +176,7 @@ def euDistance(node1,node2):
     mile = 0.621371
     x = (node2['x'] - node1['x']) * math.cos( 0.5*(node2['y']+node2['y']) )
     y = node2['y'] - node1['y']
-    d = R * math.sqrt( x*x + y*y ) * mile
+    d = (R * math.sqrt( x*x + y*y ) * mile)/50
     return d
 
 def euclideanDistance(graph,route):
@@ -200,6 +202,10 @@ def droneNodeEdge(oldGraph,newGraph,nodes):
     #print "Euclidean"
     #print totalDistance
     return newGraph, totalDistance
+def minToHour(minutes):
+    h, m = divmod(minutes, 60)
+    return "%d:%02d" % (h,m)
+
 
 def makeDroneRoute(nodes):
     #Makes route drone will fly, has drone always return to center
@@ -211,7 +217,7 @@ def makeDroneRoute(nodes):
     for x in nodes:
         if x is not center:
             timeList[x] = random.randint(360,1260)
-    print timeList
+    #print timeList
     sortedList = sorted(timeList.items(), key=lambda x: x[1])
     route = []
     times = []
@@ -237,16 +243,28 @@ def makeDroneRoute(nodes):
 
 
 def droneRouteTest(route, nodes, times, center, matrix):
-    speed = 40
-    index = 1
+    #Must incorporate battery charge time, and multiple drone take off
+    speed = 35
+    returnTime1 = 0
+    returnTime2 = 0
     drones = 2
-    finalRoute = {}
+    finalRoute = []
     callback = matrix.Distance
     #while attempt is True:
     for x in range(len(route)-1):
-            dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
-            time = (dist / 40) * 60
-            print "node: ", route[x], " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
+        dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
+        time = (dist / 40) * 60
+        leave = times[x] - time
+        if leave > returnTime1:
+            returnTime1 = times[x] + time
+            finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': 1, 'leave': minToHour(leave), 'return': minToHour(returnTime1)})
+            print "node: ", route[x], "drone", 1, " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
+        else:
+            returnTime2 = times[x] + time
+            finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': 2, 'leave': minToHour(leave), 'return': minToHour(returnTime2)})
+            print "node: ", route[x], "drone", 2, " time: ", times[x], " travel time (one way): ", time, " dist: ", dist
+    for f in finalRoute:
+        print f
 
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
@@ -372,8 +390,6 @@ print ""
 # temp = [dist_center] + destinations
 # print temp
 # droneMatrix = RouteMatrix(temp, G, demands, True)
-print trial
-print destinations
 droneRouteTest(destinations, trial, times, dist_center, droneMatrix)
 #Creates graph of drone nodes for visual aids
 Gd, droneDistance = droneNodeEdge(G,Gd,droneRoute)
@@ -387,4 +403,4 @@ print "Drone - ", droneDistance
 
 #Draws routes and prints total runtime of program
 print("--- %s seconds ---" % (time.time() - start_time))
-drawRoutes(G,Gd,finalRoutes,trial,dist_center)
+#drawRoutes(G,Gd,finalRoutes,trial,dist_center)
