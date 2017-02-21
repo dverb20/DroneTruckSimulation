@@ -8,6 +8,7 @@ import math
 import time
 import random
 import argparse
+import json
 
 #from math import radians, cos, sin, asin, sqrt
 from ortools.constraint_solver import pywrapcp
@@ -246,9 +247,9 @@ def makeDroneRoute(nodes):
 def droneRouteTest(route, nodes, times, center, matrix):
     #Must incorporate battery charge time, and multiple drone take off
     speed = 35
-    returnTime1 = 0
-    returnTime2 = 0
     returnTime = []
+    returnTime.append(0)
+    droneOrder = []
     #droneLimit = 1
     finalRoute = []
     callback = matrix.Distance
@@ -256,23 +257,39 @@ def droneRouteTest(route, nodes, times, center, matrix):
     for x in range(len(route)-1):
         dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
         time = (dist / 40) * 60
-        leave = times[x] - time
+        leave = times[x] - time + 2
         j = 0
         enter = True
-        while enter is True:
-            try:
-                returnTime[j]
-            except IndexError:
-                returnTime.append(0)
-            if leave > returnTime[j]:
-                enter = False
-                returnTime[j] = times[x] + time
-                finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': (j+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[j]), 'distance': round(dist, 2)})
-            j += 1
-    for f in finalRoute:
-        print f
-    print ""
 
+        #This is for using first index priority
+        # while enter is True:
+        #     try:
+        #         returnTime[j]
+        #     except IndexError:
+        #         returnTime.append(0)
+        #     if leave > returnTime[j]:
+        #         enter = False
+        #         returnTime[j] = times[x] + time
+        #         finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': (j+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[j]), 'distance': round(dist, 2)})
+        #     j += 1
+
+        #This is for using least used drone priority
+        while enter is True:
+            #
+            if leave > min(returnTime):
+                enter = False
+                index = returnTime.index(min(returnTime))
+                returnTime[index] = times[x] + time
+                finalRoute.append({'node': route[x],'travel': minToHour(time), 'drone': (index+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[index]), 'distance': round(dist, 2)})
+                droneOrder.append(index+1)
+            else:
+                returnTime.append(0)
+            #j += 1
+    for f in finalRoute:
+        print json.dumps(f, indent=4, sort_keys=True)
+    print ""
+    print "Drone Order"
+    print droneOrder
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
 
@@ -410,4 +427,4 @@ print "Drone - ", droneDistance
 
 #Draws routes and prints total runtime of program
 print("--- %s seconds ---" % (time.time() - start_time))
-drawRoutes(G,Gd,finalRoutes,trial,dist_center)
+#drawRoutes(G,Gd,finalRoutes,trial,dist_center)
