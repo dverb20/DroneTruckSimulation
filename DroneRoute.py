@@ -5,7 +5,7 @@ import time
 import random
 import argparse
 import json
-from helpers import minToHour
+from helpers import minToHour, directDistance
 
 class DroneRoute(object):
     """Contains attributes about which drones go where"""
@@ -66,6 +66,9 @@ class DroneRoute(object):
         print droneOrder
         return finalRoute
 
+    #def additions(self, additions):
+
+
     def getRoute(self):
         route = []
         times = []
@@ -74,6 +77,10 @@ class DroneRoute(object):
             times.append(x[1])
         return route, times
 
-    def totalDistance(self):
+    def totalDistance(self, graph):
         route, times = self.getRoute()
-        print route
+        center = self.center
+        distance = 0
+        for x in route:
+            distance += directDistance(graph.node[x],graph.node[center])*2
+        return distance

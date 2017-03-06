@@ -24,7 +24,7 @@ def start():
     droneCenter = DroneRoute(dist_center, trial, matrix)
     droneCenter.createTimeRoute(trial)
 
-    print "Drone - ", droneCenter.totalDistance()
+    print "Drone - ", droneCenter.totalDistance(network.graph)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
