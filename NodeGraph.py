@@ -204,6 +204,7 @@ def droneNodeEdge(oldGraph,newGraph,nodes):
     #print "Euclidean"
     #print totalDistance
     return newGraph, totalDistance
+    
 def minToHour(minutes):
     h, m = divmod(minutes, 60)
     return "%d:%02d" % (h,m)
@@ -290,6 +291,12 @@ def droneRouteTest(route, nodes, times, center, matrix):
     print ""
     print "Drone Order"
     print droneOrder
+    return finalRoute
+
+def timeAdjust(fullRoute, newNodes, center, matrix):
+    speed = 35
+    finalRoute = []
+#newNodes give nodes and times in dictionary, screw all this, let's make a new folder with legit classes
 
 def drawRoutes(tG, dG, finalRoutes, trial, dist_center):
 
