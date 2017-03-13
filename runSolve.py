@@ -5,8 +5,9 @@ import argparse
 import json
 from NetworkGraph import NetworkGraph
 from helpers import minToHour, directDistance
-from RouteMatrix import RouteMatrix
+from RouteMatrix import RouteMatrix, solve
 from DroneRoute import DroneRoute
+import networkx as nx
 
 
 def start():
@@ -17,11 +18,26 @@ def start():
     routeSize = input("Enter Route Size(10-30): ")
     network = NetworkGraph()
     nodes, count = network.importData(csv)
-    trial, extra = network.makeRoute(routeSize, dist_center, 5)
-    print trial
-    print extra
-    matrix = RouteMatrix(trial, network.graph, True)
-    droneCenter = DroneRoute(dist_center, trial, matrix)
+
+    # print trial
+    # print extra
+
+
+    optimal = {}
+    gate = False
+    while gate is False:
+        try:
+            trial, extra = network.makeRoute(routeSize, dist_center, 5)
+            truckMatrix = RouteMatrix(trial, network.graph, False)
+            droneMatrix = RouteMatrix(trial, network.graph, True)
+            optimal = {}
+            optimal = solve(network.graph, trial, len(trial), truckMatrix)
+        except nx.NetworkXNoPath:
+            print "no node path"
+        else:
+            gate = True
+
+    droneCenter = DroneRoute(dist_center, trial, droneMatrix)
     droneCenter.createTimeRoute(trial)
 
     print "Drone - ", droneCenter.totalDistance(network.graph)

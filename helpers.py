@@ -4,6 +4,7 @@ import time
 import random
 import argparse
 import json
+import networkx as nx
 
 def minToHour(minutes):
     h, m = divmod(minutes, 60)
@@ -21,3 +22,13 @@ def directDistance(node1,node2):
     y = node2['y'] - node1['y']
     d = (R * math.sqrt( x*x + y*y ) * mile)/50
     return d
+
+def truckDistance(graph, from_node, to_node):
+    #incorporates edge weights into total distance between nodes
+    path = nx.dijkstra_path(graph,source=from_node,target=to_node)
+    distance = 0
+    for i in range(len(path)-1):
+        #w = graph.get_edge_data(path[i],path[i+1])['weight']
+        w = directDistance(graph.node[path[i]], graph.node[path[i+1]])
+        distance += w
+    return distance
