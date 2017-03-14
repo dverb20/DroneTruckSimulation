@@ -6,6 +6,8 @@ import random
 import argparse
 import json
 from helpers import minToHour, directDistance
+from terminaltables import AsciiTable, SingleTable
+from termcolor import colored
 
 class DroneRoute(object):
     """Contains attributes about which drones go where"""
@@ -39,7 +41,11 @@ class DroneRoute(object):
         droneOrder = []
         #droneLimit = 1
         finalRoute = []
+        tableRoute = []
+        tableRoute.append(['node', 'drone', 'distance', 'leave', 'return', 'time'])
+        colors = ['red', 'blue', 'green', 'yellow', 'purple']
         callback = self.matrix.Distance
+
         #while attempt is True:
         for x in range(len(route)-1):
             dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
@@ -55,13 +61,19 @@ class DroneRoute(object):
                     index = returnTime.index(min(returnTime))
                     returnTime[index] = times[x] + time + 2
                     finalRoute.append({'node': route[x],'travel': minToHour(time*2+4), 'drone': (index+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[index]), 'distance': round(dist, 2)})
+                    tableRoute.append([route[x], colored(str(index+1), colors[index%5]), round(dist,3), minToHour(leave), minToHour(returnTime[index]),minToHour(time*2+4)])
                     droneOrder.append(index+1)
                 else:
                     returnTime.append(0)
                     self.numDrones += 1
                 #j += 1
-        for f in finalRoute:
-            print json.dumps(f, indent=4, sort_keys=True)
+        table = SingleTable(tableRoute, "Drone Flight Schedule")
+        #table.justify_columns[2] = 'right'
+        table.inner_row_border = True
+        table.inner_heading_row_border = True
+        print(table.table)
+        #for f in finalRoute:
+            #print json.dumps(f, indent=4, sort_keys=True)
         print ""
         print "Drone Order"
         print droneOrder
