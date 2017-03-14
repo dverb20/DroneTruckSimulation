@@ -39,10 +39,10 @@ def start():
 
     droneCenter = DroneRoute(dist_center, trial, droneMatrix)
     droneCenter.createTimeRoute(trial)
+    #droneCenter.additions(extra)
 
     print "Drone - ", droneCenter.totalDistance(network.graph)
     print("--- %s seconds ---" % (time.time() - start_time))
-
 
 if __name__ == '__main__':
 

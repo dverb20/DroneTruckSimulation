@@ -119,6 +119,7 @@ def solve(graph, V, size, matrix):
     #     node = assignment.Value(routing.NextVar(node))
     #   route += '0'
       print(route)
+      print "Truck Distance ", route_dist
       return collective
     else:
       print('No solution found.')

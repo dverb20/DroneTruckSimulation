@@ -14,6 +14,7 @@ class DroneRoute(object):
         #If no times given, create times
         self.center = center
         self.matrix = matrix
+        self.nodes = nodes
         self.numDrones = 1
         if timeDictionary is None:
             timeDictionary = {}
@@ -21,11 +22,11 @@ class DroneRoute(object):
                 if x is not center:
                     timeDictionary[x] = random.randint(360,1260)
             sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
-            print sortedList
+            #print sortedList
             #print json.dumps(sortedList, indent=4, sort_keys=True)
         else:
             sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
-            print json.dumps(sortedList, indent=4, sort_keys=True)
+            #print json.dumps(sortedList, indent=4, sort_keys=True)
         self.times = sortedList
 
     def createTimeRoute(self, nodes):
@@ -66,8 +67,12 @@ class DroneRoute(object):
         print droneOrder
         return finalRoute
 
-    #def additions(self, additions):
-
+    def additions(self, additions):
+        times = self.times
+        for a in additions:
+            times[a[0]] = a[1]
+        sortedList = sorted(times.items(), key=lambda x: x[1])
+        self.times = sortedList
 
     def getRoute(self):
         route = []
