@@ -12,17 +12,17 @@ from termcolor import colored
 class DroneRoute(object):
     """Contains attributes about which drones go where"""
 
-    def __init__(self, center, nodes, matrix, timeDictionary = None):
+    def __init__(self, center, nodes, graph, timeDictionary = None):
         #If no times given, create times
         self.center = center
-        self.matrix = matrix
         self.nodes = nodes
-        self.numDrones = 1
+        self.distances = {}#dictionary with distances from center to the node
         if timeDictionary is None:
             timeDictionary = {}
             for x in nodes:
                 if x is not center:
                     timeDictionary[x] = random.randint(360,1260)
+                    self.distances[x] = directDistance(graph.node[x],graph.node[center])
             sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
             #print sortedList
             #print json.dumps(sortedList, indent=4, sort_keys=True)
@@ -30,25 +30,30 @@ class DroneRoute(object):
             sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
             #print json.dumps(sortedList, indent=4, sort_keys=True)
         self.times = sortedList
+        for x in self.times:
+            self.distances[x[0]] = directDistance(graph.node[x[0]],graph.node[center])
 
-    def createTimeRoute(self, nodes):
+    def createTimeRoute(self, nodes = None):
         #Must incorporate battery charge time, and multiple drone take off
         speed = 35
         center = self.center
+        distances = self.distances
         returnTime = []
         route, times = self.getRoute()
+        if nodes:
+            route = nodes
         returnTime.append(0)
         droneOrder = []
         #droneLimit = 1
         finalRoute = []
         tableRoute = []
+        numDrones = 0
         tableRoute.append(['node', 'drone', 'distance', 'leave', 'return', 'time'])
         colors = ['red', 'blue', 'green', 'yellow', 'purple']
-        callback = self.matrix.Distance
 
         #while attempt is True:
         for x in range(len(route)-1):
-            dist = callback(nodes.index(route[x]),nodes.index(center))#Dont use node, use index of node in trial, aha
+            dist = distances[route[x]]#Dont use node, use index of node in trial, aha
             time = (dist / speed) * 60
             leave = times[x] - time - 2
             j = 0
@@ -65,7 +70,7 @@ class DroneRoute(object):
                     droneOrder.append(index+1)
                 else:
                     returnTime.append(0)
-                    self.numDrones += 1
+                    numDrones += 1
                 #j += 1
         table = SingleTable(tableRoute, "Drone Flight Schedule")
         #table.justify_columns[2] = 'right'
@@ -74,9 +79,10 @@ class DroneRoute(object):
         print(table.table)
         #for f in finalRoute:
             #print json.dumps(f, indent=4, sort_keys=True)
-        print ""
+        #print ""
         print "Drone Order"
         print droneOrder
+        print "length - ", len(droneOrder)
         return finalRoute
 
     def additions(self, additions):
@@ -93,11 +99,16 @@ class DroneRoute(object):
             route.append(x[0])
             times.append(x[1])
         return route, times
+    def getDistances(self):
+        return self.distances
 
-    def totalDistance(self, graph):
-        route, times = self.getRoute()
+    def totalDistance(self, alternate = None):
+        if alternate is None:
+            route, times = self.getRoute()
+        else:
+            route = alternate
         center = self.center
         distance = 0
         for x in route:
-            distance += directDistance(graph.node[x],graph.node[center])*2
+            distance += self.distances[x]*2
         return distance

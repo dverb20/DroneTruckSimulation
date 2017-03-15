@@ -29,7 +29,7 @@ def start():
         try:
             trial, extra = network.makeRoute(routeSize, dist_center, 5)
             truckMatrix = RouteMatrix(trial, network.graph, False)
-            droneMatrix = RouteMatrix(trial, network.graph, True)
+            #droneMatrix = RouteMatrix(trial, network.graph, True)
             optimal = {}
             optimal = solve(network.graph, trial, len(trial), truckMatrix)
         except nx.NetworkXNoPath:
@@ -37,11 +37,28 @@ def start():
         else:
             gate = True
 
-    droneCenter = DroneRoute(dist_center, trial, droneMatrix)
-    droneCenter.createTimeRoute(trial)
+    droneCenter = DroneRoute(dist_center, trial, network.graph)
+    droneCenter.createTimeRoute()
     #droneCenter.additions(extra)
 
-    print "Drone - ", droneCenter.totalDistance(network.graph)
+    print "Drone - ", droneCenter.totalDistance()
+    print ""
+    print "Hybrid Method"
+    maxDist = input("What is the max distance for drones: " )
+    distancesDrone = droneCenter.getDistances()
+    droneTrial = []
+    truckTrial = []
+    truckTrial.append(dist_center)
+    for key, val in distancesDrone.iteritems():
+        if val < maxDist:
+            droneTrial.append(key)
+        else:
+            truckTrial.append(key)
+    truckTrial.append(dist_center)
+    hybridOptimal = solve(network.graph, truckTrial, len(truckTrial), truckMatrix)
+    print droneTrial
+    droneCenter.createTimeRoute(droneTrial)
+    print "Drone - ", droneCenter.totalDistance(droneTrial)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':

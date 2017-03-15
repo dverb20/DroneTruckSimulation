@@ -204,7 +204,7 @@ def droneNodeEdge(oldGraph,newGraph,nodes):
     #print "Euclidean"
     #print totalDistance
     return newGraph, totalDistance
-    
+
 def minToHour(minutes):
     h, m = divmod(minutes, 60)
     return "%d:%02d" % (h,m)
@@ -434,4 +434,4 @@ print "Drone - ", droneDistance
 
 #Draws routes and prints total runtime of program
 print("--- %s seconds ---" % (time.time() - start_time))
-#drawRoutes(G,Gd,finalRoutes,trial,dist_center)
+drawRoutes(G,Gd,finalRoutes,trial,dist_center)
