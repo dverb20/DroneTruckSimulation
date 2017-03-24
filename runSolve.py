@@ -25,9 +25,10 @@ def start():
 
     optimal = {}
     gate = False
+    print "Full Truck Route"
     while gate is False:
         try:
-            trial, extra = network.makeRoute(routeSize, dist_center, 5)
+            trial, timeDictionary = network.makeRoute(routeSize, dist_center)
             truckMatrix = RouteMatrix(trial, network.graph, False)
             #droneMatrix = RouteMatrix(trial, network.graph, True)
             optimal = {}
@@ -37,11 +38,36 @@ def start():
         else:
             gate = True
 
-    droneCenter = DroneRoute(dist_center, trial, network.graph)
+    morning = []#360 - 660
+    morning.append(dist_center)
+    noon = []#660 - 960
+    noon.append(dist_center)
+    night = []#960-1260
+    night.append(dist_center)
+
+    for key, val in timeDictionary.iteritems():
+        if val <661:
+            morning.append(key)
+        elif val > 660 and val < 961:
+            noon.append(key)
+        elif val > 960:
+            night.append(key)
+
+    print "\nMorning Truck Route"
+    if len(morning) > 1:
+        solve(network.graph, morning, len(morning), truckMatrix)
+    print "\nNoon Truck Route"
+    if len(noon) > 1:
+        solve(network.graph, noon, len(noon), truckMatrix)
+    print "\nNight Truck Route"
+    if len(night) > 1:
+        solve(network.graph, night, len(night), truckMatrix)
+
+    droneCenter = DroneRoute(dist_center, trial, network.graph, timeDictionary)
     droneCenter.createTimeRoute()
     #droneCenter.additions(extra)
 
-    print "Drone - ", droneCenter.totalDistance()
+    print "Drone Distance - ", droneCenter.totalDistance()
     print ""
     print "Hybrid Method"
     maxDist = input("What is the max distance for drones: " )

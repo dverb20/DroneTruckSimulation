@@ -39,7 +39,7 @@ class NetworkGraph(object):
                 count += 1
             return nodes, count
 
-    def makeRoute(self, routeSize, center, extra = 0):
+    def makeRoute(self, routeSize, center):
         #creates list of n active nodes
         #Used to test various cases
         graph = self.graph
@@ -53,19 +53,10 @@ class NetworkGraph(object):
                     if int(graph.node[ran]['active']) is 0:
                         r.append(ran)
                         j = False
-        if extra is 0:
-            return r
-        else:
-            newTimes = {}
-            x = []
-            for n in range(extra):
-                j = True
-                while j is True:
-                    ran = random.randint(0,3205)
-                    if ran not in r and ran not in x:
-                        if int(graph.node[ran]['active']) is 0:
-                            newTimes[ran] = random.randint(360,1260)
-                            x.append(ran)
-                            j = False
-            newTimes = sorted(newTimes.items(), key=lambda x: x[1])
-            return r, newTimes
+
+        timeDictionary = {}
+        x = []
+        for node in r:
+            if node is not center:
+                timeDictionary[node] = random.randint(360,1260)
+        return r, timeDictionary

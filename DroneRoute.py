@@ -12,22 +12,12 @@ from termcolor import colored
 class DroneRoute(object):
     """Contains attributes about which drones go where"""
 
-    def __init__(self, center, nodes, graph, timeDictionary = None):
+    def __init__(self, center, nodes, graph, timeDictionary):
         #If no times given, create times
         self.center = center
         self.nodes = nodes
         self.distances = {}#dictionary with distances from center to the node
-        if timeDictionary is None:
-            timeDictionary = {}
-            for x in nodes:
-                if x is not center:
-                    timeDictionary[x] = random.randint(360,1260)
-                    self.distances[x] = directDistance(graph.node[x],graph.node[center])
-            sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
-            #print sortedList
-            #print json.dumps(sortedList, indent=4, sort_keys=True)
-        else:
-            sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
+        sortedList = sorted(timeDictionary.items(), key=lambda x: x[1])
             #print json.dumps(sortedList, indent=4, sort_keys=True)
         self.times = sortedList
         for x in self.times:
@@ -36,9 +26,11 @@ class DroneRoute(object):
     def createTimeRoute(self, nodes = None):
         #Must incorporate battery charge time, and multiple drone take off
         speed = 35
+        deliveryCap = 30 #Minutes allowed for a later delivery
         center = self.center
         distances = self.distances
         returnTime = []
+        avgDistance = 0
         route, times = self.getRoute()
         if nodes:
             route = nodes
@@ -65,6 +57,7 @@ class DroneRoute(object):
                     enter = False
                     index = returnTime.index(min(returnTime))
                     returnTime[index] = times[x] + time + 2
+                    avgDistance += dist
                     finalRoute.append({'node': route[x],'travel': minToHour(time*2+4), 'drone': (index+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[index]), 'distance': round(dist, 2)})
                     tableRoute.append([route[x], colored(str(index+1), colors[index%5]), round(dist,3), minToHour(leave), minToHour(returnTime[index]),minToHour(time*2+4)])
                     droneOrder.append(index+1)
@@ -83,6 +76,8 @@ class DroneRoute(object):
         print "Drone Order"
         print droneOrder
         print "length - ", len(droneOrder)
+        if len(droneOrder) is not 0:
+            print "average node distance - ", avgDistance/len(droneOrder)
         return finalRoute
 
     def additions(self, additions):
