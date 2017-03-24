@@ -44,7 +44,7 @@ class DroneRoute(object):
         colors = ['red', 'blue', 'green', 'yellow', 'purple']
 
         #while attempt is True:
-        for x in range(len(route)-1):
+        for x in range(len(route)):
             dist = distances[route[x]]#Dont use node, use index of node in trial, aha
             time = (dist / speed) * 60
             leave = times[x] - time - 2

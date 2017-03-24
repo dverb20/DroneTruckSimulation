@@ -64,7 +64,9 @@ def start():
         solve(network.graph, night, len(night), truckMatrix)
 
     droneCenter = DroneRoute(dist_center, trial, network.graph, timeDictionary)
-    droneCenter.createTimeRoute()
+    finalRoute = droneCenter.createTimeRoute()
+    #for x in finalRoute:
+        #print x
     #droneCenter.additions(extra)
 
     print "Drone Distance - ", droneCenter.totalDistance()
@@ -80,7 +82,7 @@ def start():
             droneTrial.append(key)
         else:
             truckTrial.append(key)
-    truckTrial.append(dist_center)
+    #truckTrial.append(dist_center)
     hybridOptimal = solve(network.graph, truckTrial, len(truckTrial), truckMatrix)
     print droneTrial
     droneCenter.createTimeRoute(droneTrial)
