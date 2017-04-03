@@ -7,6 +7,9 @@ from NetworkGraph import NetworkGraph
 from helpers import minToHour, directDistance
 from RouteMatrix import RouteMatrix, solve
 from DroneRoute import DroneRoute
+from xlutils.copy import copy
+import xlwt
+import xlrd
 import networkx as nx
 
 
@@ -18,11 +21,19 @@ def start():
     routeSize = input("Enter Route Size(10-30): ")
     network = NetworkGraph()
     nodes, count = network.importData(csv)
+    workbook1 = xlrd.open_workbook('TruckData.xls', on_demand = True, formatting_info=True)
+    wb1 = copy(workbook1)
+    ws1 = wb1.get_sheet(0)
+    workbook2 = xlrd.open_workbook('DroneData.xls', on_demand = True, formatting_info=True)
+    wb2 = copy(workbook2)
+    ws2 = wb2.get_sheet(0)
+    ws1.write(2, 1, routeSize)
+    ws2.write(2, 1, routeSize)
 
     # print trial
     # print extra
 
-
+    #for index in range(0,9):
     optimal = {}
     gate = False
     print "Full Truck Route"
@@ -32,61 +43,76 @@ def start():
             truckMatrix = RouteMatrix(trial, network.graph, False)
             #droneMatrix = RouteMatrix(trial, network.graph, True)
             optimal = {}
-            optimal = solve(network.graph, trial, len(trial), truckMatrix)
+            optimal, truckDist, longest, shortest = solve(network.graph, trial, len(trial), truckMatrix)
         except nx.NetworkXNoPath:
             print "no node path"
         else:
             gate = True
 
-    morning = []#360 - 660
-    morning.append(dist_center)
-    noon = []#660 - 960
-    noon.append(dist_center)
-    night = []#960-1260
-    night.append(dist_center)
+    ws1.write((5), 1, truckDist)
+    ws1.write((5), 2, shortest)
+    ws1.write((5), 3, longest)
 
-    for key, val in timeDictionary.iteritems():
-        if val <661:
-            morning.append(key)
-        elif val > 660 and val < 961:
-            noon.append(key)
-        elif val > 960:
-            night.append(key)
+    wb1.save('TruckData.xls')
 
-    print "\nMorning Truck Route"
-    if len(morning) > 1:
-        solve(network.graph, morning, len(morning), truckMatrix)
-    print "\nNoon Truck Route"
-    if len(noon) > 1:
-        solve(network.graph, noon, len(noon), truckMatrix)
-    print "\nNight Truck Route"
-    if len(night) > 1:
-        solve(network.graph, night, len(night), truckMatrix)
+    # morning = []#360 - 660
+    # morning.append(dist_center)
+    # noon = []#660 - 960
+    # noon.append(dist_center)
+    # night = []#960-1260
+    # night.append(dist_center)
+    #
+    # for key, val in timeDictionary.iteritems():
+    #     if val <661:
+    #         morning.append(key)
+    #     elif val > 660 and val < 961:
+    #         noon.append(key)
+    #     elif val > 960:
+    #         night.append(key)
+    #
+    # print "\nMorning Truck Route"
+    # if len(morning) > 1:
+    #     solve(network.graph, morning, len(morning), truckMatrix)
+    # print "\nNoon Truck Route"
+    # if len(noon) > 1:
+    #     solve(network.graph, noon, len(noon), truckMatrix)
+    # print "\nNight Truck Route"
+    # if len(night) > 1:
+    #     solve(network.graph, night, len(night), truckMatrix)
 
     droneCenter = DroneRoute(dist_center, trial, network.graph, timeDictionary)
-    finalRoute = droneCenter.createTimeRoute()
+    finalRoute, avg, numDrones, shortest, longest  = droneCenter.createTimeRoute()
     #for x in finalRoute:
         #print x
     #droneCenter.additions(extra)
+    droneDistance = droneCenter.totalDistance()
+    print "Drone Distance - ", droneDistance
+    print "Average Distance", droneDistance/routeSize
+    print "Number of Drones", numDrones
 
-    print "Drone Distance - ", droneCenter.totalDistance()
-    print ""
-    print "Hybrid Method"
-    maxDist = input("What is the max distance for drones: " )
-    distancesDrone = droneCenter.getDistances()
-    droneTrial = []
-    truckTrial = []
-    truckTrial.append(dist_center)
-    for key, val in distancesDrone.iteritems():
-        if val < maxDist:
-            droneTrial.append(key)
-        else:
-            truckTrial.append(key)
-    #truckTrial.append(dist_center)
-    hybridOptimal = solve(network.graph, truckTrial, len(truckTrial), truckMatrix)
-    print droneTrial
-    droneCenter.createTimeRoute(droneTrial)
-    print "Drone - ", droneCenter.totalDistance(droneTrial)
+    ws2.write((5), 1, droneDistance)
+    ws2.write((5), 2, shortest)
+    ws2.write((5), 3, longest)
+    ws2.write((5), 4, avg)
+    ws2.write((5), 5, numDrones)
+    wb2.save('DroneData.xls')
+    # print ""
+    # print "Hybrid Method"
+    # maxDist = input("What is the max distance for drones: " )
+    # distancesDrone = droneCenter.getDistances()
+    # droneTrial = []
+    # truckTrial = []
+    # truckTrial.append(dist_center)
+    # for key, val in distancesDrone.iteritems():
+    #     if val < maxDist:
+    #         droneTrial.append(key)
+    #     else:
+    #         truckTrial.append(key)
+    # #truckTrial.append(dist_center)
+    # hybridOptimal = solve(network.graph, truckTrial, len(truckTrial), truckMatrix)
+    # print droneTrial
+    # droneCenter.createTimeRoute(droneTrial)
+    # print "Drone - ", droneCenter.totalDistance(droneTrial)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':

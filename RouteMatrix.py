@@ -82,6 +82,8 @@ def solve(graph, V, size, matrix):
       # Inspect solution.
       # Only one route here; otherwise iterate from 0 to routing.vehicles() - 1
       collective = {}
+      longest = 0
+      shortest = 1000
       for vehicle in range(1):
           index = routing.Start(vehicle)
           index_next = assignment.Value(routing.NextVar(index))
@@ -97,7 +99,12 @@ def solve(graph, V, size, matrix):
               node_index_next = routing.IndexToNode(index_next)
               route += str(V[node_index]) + " -> "
               # Add the distance to the next node.
-              route_dist += matrix_callback(node_index, node_index_next)
+              dist = matrix_callback(node_index, node_index_next)
+              if dist > longest:
+                  longest = dist
+              if dist < shortest:
+                   shortest = dist
+              route_dist += dist
               # Add demand.
               index = index_next
               index_next = assignment.Value(routing.NextVar(index))
@@ -105,7 +112,12 @@ def solve(graph, V, size, matrix):
           node_index = routing.IndexToNode(index)
           node_index_next = routing.IndexToNode(index_next)
           route += str(V[node_index]) + " -> " + str(V[node_index_next])
-          route_dist += matrix_callback(node_index, node_index_next)
+          dist = matrix_callback(node_index, node_index_next)
+          if dist > longest:
+              longest = dist
+          if dist < shortest:
+               shortest = dist
+          route_dist += dist
           collective[vehicle].append(0)
 
     #   route_number = 0
@@ -121,6 +133,6 @@ def solve(graph, V, size, matrix):
       print(route)
       print "length - ", size-1
       print "Truck Distance ", route_dist
-      return collective
+      return collective, route_dist, longest, shortest
     else:
       print('No solution found.')

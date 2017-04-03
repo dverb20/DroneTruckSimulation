@@ -40,6 +40,8 @@ class DroneRoute(object):
         finalRoute = []
         tableRoute = []
         numDrones = 0
+        shortest = 1000
+        longest = 0
         tableRoute.append(['node', 'drone', 'distance', 'leave', 'return', 'time'])
         colors = ['red', 'blue', 'green', 'yellow', 'purple']
 
@@ -57,6 +59,10 @@ class DroneRoute(object):
                     enter = False
                     index = returnTime.index(min(returnTime))
                     returnTime[index] = times[x] + time + 2
+                    if dist > longest:
+                        longest = dist
+                    if dist < shortest:
+                         shortest = dist
                     avgDistance += dist
                     finalRoute.append({'node': route[x],'travel': minToHour(time*2+4), 'drone': (index+1), 'leave': minToHour(leave), 'return': minToHour(returnTime[index]), 'distance': round(dist, 2)})
                     tableRoute.append([route[x], colored(str(index+1), colors[index%5]), round(dist,3), minToHour(leave), minToHour(returnTime[index]),minToHour(time*2+4)])
@@ -78,7 +84,7 @@ class DroneRoute(object):
         print "length - ", len(droneOrder)
         if len(droneOrder) is not 0:
             print "average node distance - ", avgDistance/len(droneOrder)
-        return finalRoute
+        return finalRoute, avgDistance/len(droneOrder), (numDrones+1), shortest, longest
 
     def additions(self, additions):
         times = self.times
