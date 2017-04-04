@@ -43,7 +43,7 @@ class DroneRoute(object):
         shortest = 1000
         longest = 0
         tableRoute.append(['node', 'drone', 'distance', 'leave', 'return', 'time'])
-        colors = ['red', 'blue', 'green', 'yellow', 'purple']
+        colors = ['red', 'blue', 'green', 'yellow', 'magenta', 'cyan', 'white', 'grey']
 
         #while attempt is True:
         for x in range(len(route)):
